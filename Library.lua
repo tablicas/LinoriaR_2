@@ -7,7 +7,7 @@ local RunService = game:GetService('RunService')
 local TweenService = game:GetService('TweenService');
 local ContentProvider = game:GetService("ContentProvider")
 ContentProvider:PreloadAsync({"rbxassetid://12187371840"})
-task.wait(1)
+task.wait(2)
 local RenderStepped = RunService.RenderStepped;
 local LocalPlayer = Players.LocalPlayer;
 local Mouse = LocalPlayer:GetMouse();
