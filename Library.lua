@@ -3260,29 +3260,67 @@ function Library:SetWatermark(Text)
     Library:SetWatermarkVisibility(true);
 end;
 
-function Library:Notify(Text, Time)
+local function EscapeRichText(str)
+    return (str:gsub('[<>&"]', {
+        ['<'] = '&lt;',
+        ['>'] = '&gt;',
+        ['&'] = '&amp;',
+        ['"'] = '&quot;',
+    }))
+end
+
+local function ColorToHex(color)
+    return string.format('#%02X%02X%02X', color.R * 255, color.G * 255, color.B * 255)
+end
+
+-- Оборачивает нужные слова в тексте тегами <font color="...">
+local function HighlightWords(text, words, color)
+    if not words or #words == 0 then
+        return EscapeRichText(text)
+    end
+
+    local hex = ColorToHex(color)
+    local escaped = EscapeRichText(text)
+
+    -- сортируем по длине, чтобы длинные совпадения матчились раньше коротких
+    local sorted = {}
+    for _, w in ipairs(words) do
+        table.insert(sorted, EscapeRichText(w))
+    end
+    table.sort(sorted, function(a, b) return #a > #b end)
+
+    for _, word in ipairs(sorted) do
+        if word ~= '' then
+            local pattern = word:gsub('%W', '%%%1') -- экранируем спецсимволы Lua-паттерна
+            escaped = escaped:gsub(pattern, string.format('<font color="%s">%s</font>', hex, word))
+        end
+    end
+
+    return escaped
+end
+
+function Library:Notify(Text, Time, HighlightedWords)
     local Duration = Time or 5
+    local RichText = HighlightWords(Text, HighlightedWords, Library.AccentColor)
 
     local TempLabel = Library:Create('TextLabel', {
         BackgroundTransparency = 1;
-        Text = Text;
+        Text = RichText;
+        RichText = true;
         FontFace = Library.Font;
         TextSize = 14;
-        TextWrapped = true;
-        Size = UDim2.fromOffset(240, 1000);
+        TextWrapped = false;
+        Size = UDim2.fromOffset(2000, 20);
         Parent = ScreenGui;
         ZIndex = -1;
     })
-
     RunService.Heartbeat:Wait()
-
     local bounds = TempLabel.TextBounds
     TempLabel:Destroy()
 
     local PADDING_H = 8
     local PADDING_V = 10
     local ACCENT_W  = 3
-
     local notifyW = math.max(bounds.X + PADDING_H + ACCENT_W + 4, 120)
     local notifyH = bounds.Y + PADDING_V
 
@@ -3294,7 +3332,6 @@ function Library:Notify(Text, Time)
         ZIndex = 100,
         Parent = Library.NotificationArea,
     })
-
     local NotifyInner = Library:Create('Frame', {
         BackgroundColor3 = Library.MainColor,
         BorderColor3 = Library.OutlineColor,
@@ -3304,12 +3341,10 @@ function Library:Notify(Text, Time)
         ZIndex = 101,
         Parent = NotifyOuter,
     })
-
     Library:AddToRegistry(NotifyInner, {
         BackgroundColor3 = 'MainColor',
         BorderColor3 = 'OutlineColor',
     }, true)
-
     local InnerFrame = Library:Create('Frame', {
         BackgroundColor3 = Color3.new(1, 1, 1),
         BorderSizePixel = 0,
@@ -3318,7 +3353,6 @@ function Library:Notify(Text, Time)
         ZIndex = 102,
         Parent = NotifyInner,
     })
-
     Library:Create('UIGradient', {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0,   Library.AccentColor);
@@ -3333,19 +3367,18 @@ function Library:Notify(Text, Time)
         Rotation = 0;
         Parent = InnerFrame;
     });
-
     local NotifyLabel = Library:CreateLabel({
         Position = UDim2.new(0, ACCENT_W + 4, 0, 0),
         Size = UDim2.new(1, -(ACCENT_W + 8), 1, 0),
-        Text = Text,
+        Text = RichText,
+        RichText = true,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Center,
-        TextWrapped = true,
+        TextWrapped = false,
         TextSize = 14,
         ZIndex = 103,
         Parent = InnerFrame,
     })
-
     local LeftColor = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor,
         BorderSizePixel = 0,
@@ -3354,7 +3387,6 @@ function Library:Notify(Text, Time)
         ZIndex = 104,
         Parent = InnerFrame,
     })
-
     Library:Create('UIGradient', {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0,   Color3.new(1, 1, 1));
@@ -3367,7 +3399,6 @@ function Library:Notify(Text, Time)
         Rotation = 90;
         Parent = LeftColor;
     });
-
     Library:AddToRegistry(LeftColor, {
         BackgroundColor3 = 'AccentColor',
     }, true)
@@ -3375,15 +3406,11 @@ function Library:Notify(Text, Time)
     TweenService:Create(NotifyInner, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
         Position = UDim2.fromOffset(0, 0),
     }):Play()
-
     task.spawn(function()
         task.wait(Duration)
-
-        -- slide out to right
         TweenService:Create(NotifyInner, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
             Position = UDim2.fromOffset(notifyW, 0),
         }):Play()
-
         task.wait(0.25)
         NotifyOuter:Destroy()
     end)
