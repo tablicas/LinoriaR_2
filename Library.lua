@@ -29,22 +29,17 @@ getgenv().Options = Options;
 local Library = {
     Registry = {};
     RegistryMap = {};
-
     HudRegistry = {};
-
-    FontColor = Color3.fromRGB(200, 180, 255);
-    MainColor = Color3.fromRGB(12, 8, 20);
-    BackgroundColor = Color3.fromRGB(6, 4, 12);
-    AccentColor = Color3.fromRGB(120, 60, 255);
-    OutlineColor = Color3.fromRGB(40, 20, 80);
+    FontColor = Color3.fromRGB(255, 190, 190);
+    MainColor = Color3.fromRGB(14, 6, 6);
+    BackgroundColor = Color3.fromRGB(8, 3, 3);
+    AccentColor = Color3.fromRGB(220, 30, 30);
+    OutlineColor = Color3.fromRGB(70, 15, 15);
     RiskColor = Color3.fromRGB(255, 70, 70);
-
     Black = Color3.new(0, 0, 0);
     Font = Font.new("rbxassetid://12187371840", Enum.FontWeight.Regular),
-
     OpenedFrames = {};
     DependencyBoxes = {};
-
     Signals = {};
     ScreenGui = ScreenGui;
 }
