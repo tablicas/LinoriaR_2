@@ -3273,14 +3273,13 @@ function Library:Notify(Text, Time)
         Text = Text;
         FontFace = Library.Font;
         TextSize = 14;
-        TextWrapped = true;
-        Size = UDim2.fromOffset(240, 1000);
+        TextWrapped = false;
+        Size = UDim2.fromOffset(2000, 20);
         Parent = ScreenGui;
         ZIndex = -1;
     })
-
+    
     RunService.Heartbeat:Wait()
-
     local bounds = TempLabel.TextBounds
     TempLabel:Destroy()
 
@@ -3345,7 +3344,7 @@ function Library:Notify(Text, Time)
         Text = Text,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Center,
-        TextWrapped = true,
+        TextWrapped = false,
         TextSize = 14,
         ZIndex = 103,
         Parent = InnerFrame,
