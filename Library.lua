@@ -3128,10 +3128,12 @@ do
         Parent = Library.NotificationArea;
     });
 
+    local WM_ACCENT_W = 3
+    local WM_PADDING_H = 10
+
     local WatermarkOuter = Library:Create('Frame', {
         AnchorPoint = Vector2.new(0.5, 0);
-        BackgroundTransparency = 0;
-        BackgroundColor3 = Library.Background;
+        BackgroundColor3 = Color3.new(0, 0, 0);
         BorderSizePixel = 0;
         Position = UDim2.new(0.5, 0, 0, 6);
         Size = UDim2.new(0, 200, 0, 22);
@@ -3140,38 +3142,78 @@ do
         Parent = ScreenGui;
     });
 
-    local WatermarkLabel = Library:CreateLabel({
-        AnchorPoint = Vector2.new(0.5, 0);
-        Position = UDim2.new(0.5, 0, 0, 0);
-        Size = UDim2.new(1, 0, 0, 16);
-        TextSize = 13;
-        TextXAlignment = Enum.TextXAlignment.Center;
-        BackgroundTransparency = 1,
+    local WatermarkInner = Library:Create('Frame', {
+        BackgroundColor3 = Library.MainColor;
+        BorderColor3 = Library.OutlineColor;
+        BorderMode = Enum.BorderMode.Inset;
+        Position = UDim2.new(0, 1, 0, 1);
+        Size = UDim2.new(1, -2, 1, -2);
         ZIndex = 201;
         Parent = WatermarkOuter;
     });
 
-    local WatermarkLine = Library:Create('Frame', {
-        AnchorPoint = Vector2.new(0.5, 0);
+    Library:AddToRegistry(WatermarkInner, {
+        BackgroundColor3 = 'MainColor';
+        BorderColor3 = 'OutlineColor';
+    });
+
+    Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0,   Library.AccentColor);
+            ColorSequenceKeypoint.new(0.6, Library.MainColor);
+            ColorSequenceKeypoint.new(1,   Library.MainColor);
+        });
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0,   0.72);
+            NumberSequenceKeypoint.new(0.6, 1);
+            NumberSequenceKeypoint.new(1,   1);
+        });
+        Rotation = 0;
+        Parent = WatermarkInner;
+    });
+
+    local WatermarkAccentBar = Library:Create('Frame', {
         BackgroundColor3 = Library.AccentColor;
         BorderSizePixel = 0;
-        Position = UDim2.new(0.5, 0, 1, 2);
-        Size = UDim2.new(0.6, 0, 0, 1);
-        ZIndex = 201;
-        Parent = WatermarkOuter;
+        Position = UDim2.new(0, 0, 0, 0);
+        Size = UDim2.new(0, WM_ACCENT_W, 1, 0);
+        ZIndex = 202;
+        Parent = WatermarkInner;
     });
 
+    Library:Create('UIGradient', {
+        Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1));
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80));
+        });
+        Rotation = 90;
+        Parent = WatermarkAccentBar;
+    });
+
+    Library:AddToRegistry(WatermarkAccentBar, {
+        BackgroundColor3 = 'AccentColor';
+    });
+
+    local WatermarkLabel = Library:CreateLabel({
+        Position = UDim2.new(0, WM_ACCENT_W + WM_PADDING_H, 0, 0);
+        Size = UDim2.new(1, -(WM_ACCENT_W + WM_PADDING_H * 2), 1, 0);
+        TextSize = 13;
+        TextXAlignment = Enum.TextXAlignment.Left;
+        TextYAlignment = Enum.TextYAlignment.Center;
+        BackgroundTransparency = 1;
+        ZIndex = 203;
+        Parent = WatermarkInner;
+    });
+
+    Library:RemoveFromRegistry(WatermarkLabel);
     Library:AddToRegistry(WatermarkLabel, {
         TextColor3 = 'FontColor';
     });
 
-    Library:AddToRegistry(WatermarkLine, {
-        BackgroundColor3 = 'AccentColor';
-    });
-
     Library.Watermark = WatermarkOuter;
     Library.WatermarkText = WatermarkLabel;
-    Library.WatermarkLine = WatermarkLine;
+    Library.WatermarkPaddingH = WM_PADDING_H;
+    Library.WatermarkAccentW = WM_ACCENT_W;
     Library:MakeDraggable(Library.Watermark);
 
     local KeybindOuter = Library:Create('Frame', {
@@ -3250,12 +3292,13 @@ end;
 
 function Library:SetWatermark(Text)
     local X = Library:GetTextBounds(Text, Library.Font, 13);
-    local TotalWidth = X + 20;
+    local ACCENT_W = Library.WatermarkAccentW or 3;
+    local PADDING_H = Library.WatermarkPaddingH or 10;
+
+    local TotalWidth = X + ACCENT_W + PADDING_H * 2;
 
     Library.Watermark.Size = UDim2.new(0, TotalWidth, 0, 22);
     Library.WatermarkText.Text = Text;
-
-    Library.WatermarkLine.Size = UDim2.new(0, math.floor(TotalWidth * 0.55), 0, 1);
 
     Library:SetWatermarkVisibility(true);
 end;
